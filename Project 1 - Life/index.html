@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Cellular Automata - project 1</title>
+    <meta charset="UTF-8"/>
+    <script src="script.js"></script>
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <script src="resources/bootstrap.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="resources/bootstrap.min.css">
+  </head>
+  <body>
+
+    <header class="p-4 bg-dark text-white">
+      <h1>Cellular Automata - Life (project 1)</h1>
+    </header>
+    
+    <div class="container">
+
+      <div class="p-2 row">
+
+        <form class="col">
+
+          <label for="sValues">S (stay)</label>
+          <select class="form-control" id="sValues" name="sValues" multiple>
+            <option>0</option>
+            <option>1</option>
+            <option>2</option>
+            <option>3</option>
+            <option>4</option>
+            <option>5</option>
+            <option>6</option>
+            <option>7</option>
+            <option>8</option>
+          </select>
+
+          <label for="bValues">B (born)</label>
+          <select class="form-control" id="bValues" name="bValues" multiple>
+            <option>0</option>
+            <option>1</option>
+            <option>2</option>
+            <option>3</option>
+            <option>4</option>
+            <option>5</option>
+            <option>6</option>
+            <option>7</option>
+            <option>8</option>
+          </select>
+
+          <label for="aliveAtStart">% of alive cells at the begining</label>
+          <input class="form-control" id="aliveAtStart" name="aliveAtStart" type="number" min="0" max="100" step="0.1"/>
+
+  <!--           <label for="simulationType">Simulation type</label>
+          <select id="simulationType" name="simulationType">
+            <option value="1"> Smooth </option>
+            <option value="2"> One frame at the time </option>
+          </select> -->
+
+          <label for="boardSize"> Board size (side)</label>
+          <select class="form-control" id="boardSize" name="boardSize">
+            <option>10</option>
+            <option>25</option>
+            <option>50</option>
+            <option>100</option>
+          </select>
+
+          <input class="form-control" type="button" id="startStopButton" onclick="playSimulation(this.form)" value="Start" />
+          
+        </form>
+
+        <div class="col-sm col-sm-auto">
+          <canvas width="500px" height="500px" id="lifeBoard" style="border:1px solid #000000;"></canvas>
+        </div>
+
+      </div>
+
+    </div>
+
+    <footer class="py-4 bg-dark text-white">
+      <div class="container text-center">&copy; Copyright 2020 Arkadiusz Kasprzak</div>
+    </footer>
+
+  </body>
+</html> 
