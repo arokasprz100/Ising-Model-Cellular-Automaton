@@ -9,9 +9,9 @@
     <link rel="stylesheet" type="text/css" href="style.css">
     <link rel="stylesheet" type="text/css" href="resources/bootstrap/bootstrap.min.css">
   </head>
-  <body onload="displaySimulationSettingsMenu(); drawDensityChart();">
+  <body onload="initializeApp()">
 
-    <header class="p-4 bg-dark text-white">
+    <header class="p-4 bg-dark text-white text-center">
       <h1>Cellular Automata - Life (project 1)</h1>
     </header>
     
@@ -22,7 +22,7 @@
         <div class="col-sm col-lg-2" id="settingsMenu"></div>
 
         <div class="col-sm col-sm-auto">
-          <canvas width="750px" height="750px" id="lifeBoard"></canvas>
+          <canvas onclick="manuallyChangeCellState(this, event)" width="750px" height="750px" id="lifeBoard"></canvas>
         </div>
 
       </div>
