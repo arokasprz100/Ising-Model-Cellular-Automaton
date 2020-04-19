@@ -5,7 +5,10 @@ Projects created during my participation in the Cellular Automata course (AGH US
 
  * configurable *Life-like* cellular automaton - user can choose stay/born rules, board size and initial conditions (number of alive cells)
 
- * second project that is yet to be announced
+ * Ising model
 
 
 ## First project - Life-like automaton
+
+
+## Second project - Ising model

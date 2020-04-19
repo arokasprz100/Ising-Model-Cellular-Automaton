@@ -1,0 +1,86 @@
+\documentclass[12pt] {article}
+
+%%% Preambuła %%%
+\usepackage[T1]{fontenc}
+\usepackage[polish]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage[hidelinks]{hyperref}
+\usepackage{mathptmx}
+\usepackage{float}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{geometry}
+\usepackage{tocloft}
+\usepackage{subcaption}
+\usepackage{indentfirst}
+\selectlanguage{polish}
+
+\lstset{basicstyle=\ttfamily,
+  showstringspaces=false,
+  commentstyle=\color{red},
+  keywordstyle=\color{blue},
+  basicstyle=\ttfamily\footnotesize,
+  columns=fullflexible,
+  breaklines=true
+}
+
+\renewenvironment{abstract}
+ {\small
+  \begin{center}
+  \bfseries \abstractname\vspace{-.5em}\vspace{0pt}
+  \end{center}
+  \list{}{%
+    \setlength{\leftmargin}{5mm}% <---------- CHANGE HERE
+    \setlength{\rightmargin}{\leftmargin}%
+  }%
+  \item\relax}
+ {\endlist}
+
+\renewcommand{\cftsecleader}{\cftdotfill{\cftdotsep}} 
+\geometry{a4paper, total={170mm,257mm}, left=20mm, top=20mm,}
+
+%%% Strona tytułowa %%%
+\title {
+	\large Automaty komórkowe \\
+    \normalsize Projekt 2: model Isinga
+    }
+
+\author {Arkadiusz Kasprzak}
+\date{}
+	
+\begin{document}
+
+
+%%% Strona tytułowa %%%
+\maketitle
+
+%%% Streszczenie %%%
+\begin{abstract}
+Niniejszy dokument stanowi sprawozdanie z drugiego projektu realizowanego w ramach przedmiotu \textit{Automaty komórkowe}. Tematem projektu było opracowanie interaktywnej aplikacji internetowej implementującej ... 
+
+\end{abstract}
+
+%%% Spis treści %%%
+\tableofcontents
+
+\newpage 
+
+\section{Wstęp}
+
+
+
+\newpage
+
+\begin{thebibliography}{9}
+
+\bibitem{malarz}
+  dr hab. inż. Krzysztof Malarz, prof. AGH,
+  \emph{wykład prowadzony w ramach przedmiotu Automaty komórkowe},
+  \url{http://home.agh.edu.pl/~malarz/dyd/ak/} (dostęp: 17.03.2020)
+
+\end{thebibliography}
+
+\end{document}

@@ -1,0 +1,16 @@
+html, body {
+    margin: 0;
+    height: 100%;
+}
+
+body {
+    min-width: 1000px;
+}
+
+#board {
+    border: 1px solid black;
+}
+
+.menuButton {
+    width: 200px;
+}

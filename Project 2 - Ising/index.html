@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Cellular Automata - project 2</title>
+    <meta charset="UTF-8"/>
+    <script src="script.js"></script>
+    <script src="resources/d3/d3.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <link rel="stylesheet" type="text/css" href="resources/bootstrap/bootstrap.min.css">
+  </head>
+  <body class="d-flex flex-column" onload="initializeApp()">
+
+    <header class="p-4 bg-dark text-white text-center">
+      <h1>Ising model</h1>
+      <h5>Cellular Automata: project 2
+    </header>
+    
+
+    <div class="container-fluid" id="mainContent">
+
+
+      <div class="p-2 row justify-content-center" id="settingsMenu">
+        
+        <form>
+          <div class="form-row">
+
+            <div class="col text-center">
+              <label for="exampleFormControlInput1">Field</label>
+              <input type="number" class="form-control"/>
+            </div>
+
+            <div class="col text-center">
+              <label for="exampleFormControlInput1">Something</label>
+              <input type="email" class="form-control"/>
+            </div>
+
+            <div class="col text-center">
+              <label for="exampleFormControlInput1">Temperature</label>
+              <input type="email" class="form-control"/>
+            </div>
+
+          </div>
+
+          <div class="form-row" id="menuButtons"></div>
+        </form>
+
+      </div>
+
+      <div class="p-2 row justify-content-center">
+
+        <div class="p-4 col-sm col-sm-auto">
+          <canvas width="750px" height="750px" id="board"></canvas>
+        </div>
+
+        <!-- <div class="col-sm" id="charts"></div> -->
+
+      </div>
+
+    </div>
+
+
+    <footer class="py-4 bg-dark text-white">
+      <div class="container text-center">&copy; Copyright 2020 Arkadiusz Kasprzak</div>
+    </footer>
+
+  </body>
+</html> 
