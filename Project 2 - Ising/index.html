@@ -23,21 +23,38 @@
       <div class="p-2 row justify-content-center" id="settingsMenu">
         
         <form>
-          <div class="form-row">
+
+          <div class="form-row p-2">
+            
+            <div class="col text-center">
+              <label for="resolutionSelect">Resolution</label>
+              <select id="resolutionSelect" class="form-control" onchange="updateResolution(event)">
+              </select>
+            </div>
+
+            <div class="col text-center">
+              <label for="colorsSelect">Colors</label>
+              <select id="colorsSelect" class="form-control" onchange="updateColorPair(event)">
+              </select>
+            </div>
+
+          </div>
+
+          <div class="form-row p-2">
 
             <div class="col text-center">
               <label for="fieldFormControl">Field H</label>
-              <input id="fieldFormControl" type="number" class="form-control" onchange="updateModelParameter()" value="1"/>
+              <input id="fieldFormControl" type="number" class="form-control" onchange="updateModelParameter()" value="0" step="0.01"/>
             </div>
 
             <div class="col text-center">
               <label for="couplingConstantFormControl">Coupling Constant J</label>
-              <input id="couplingConstantFormControl" type="number" class="form-control" onchange="updateModelParameter()" value="1"/>
+              <input id="couplingConstantFormControl" type="number" class="form-control" onchange="updateModelParameter()" value="1" step="1"/>
             </div>
 
             <div class="col text-center">
               <label for="temperatureFormControl">Temperature</label>
-              <input id="temperatureFormControl" type="number" class="form-control" onchange="updateModelParameter()" value="1"/>
+              <input id="temperatureFormControl" type="number" class="form-control" onchange="updateModelParameter()" value="1" step="0.1"/>
             </div>
 
           </div>
@@ -50,17 +67,24 @@
       <div class="p-2 row justify-content-center">
 
         <div class="p-4 col-sm col-sm-auto">
-          <canvas width="750px" height="750px" id="board"></canvas>
+          <canvas width="500px" height="500px" id="board"></canvas>
         </div>
 
-        <!-- <div class="col-sm" id="charts"></div> -->
+        <div class="col-sm col-sm-auto">
+          <div class="p-2 row" id="magnetizationChart"></div>
+          <div class="p-2 row justify-content-center">
+            <label for="formControlRange">Data lower bound</label>
+            <input type="range" class="form-control-range" id="lowerBoundRange" onchange="resizeMagnetizationChart(event)">
+          </div>
+        </div>
 
       </div>
+
 
     </div>
 
 
-    <footer class="py-4 bg-dark text-white">
+    <footer class="py-4 bg-dark text-white h-100">
       <div class="container text-center">&copy; Copyright 2020 Arkadiusz Kasprzak</div>
     </footer>
 
