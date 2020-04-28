@@ -36,8 +36,6 @@ class Board {
         const outsideField = modelParameters.outsideField;
 
         let magnetization = 0;
-
-        // TODO: check needed distribution
         for (let i = 0; i < this.side; ++i) {
             for (let j = 0; j < this.side; ++j) {
                 const sum = this.computeNeighboursSum(i, j, couplingConstant) + outsideField;
@@ -47,7 +45,9 @@ class Board {
                     this.board[j][i] = (r >= randomNumber ? 1 : -1);
                 }
                 else {
-                    this.board[j][i] = sum > 0 ? 1 : -1;
+                    if (Math.abs(sum) > 0.00000000001) {
+                        this.board[j][i] = sum > 0 ? 1 : -1;
+                    }
                 }
                 magnetization += this.board[j][i];
             }
@@ -69,18 +69,17 @@ class Board {
 }
 
 
+
 class CanvasHandler {
 
     constructor() {
         this.canvas = document.getElementById("board");
         this.context = this.canvas.getContext("2d");
 
-        const boardWidth = this.canvas.width;
-        /// https://gist.github.com/biovisualize/5400576
-        this.imageData = this.context.getImageData(0, 0, boardWidth, boardWidth);
+        const canvasWidth = this.canvas.width;
+        this.imageData = this.context.getImageData(0, 0, canvasWidth, canvasWidth);
         this.data = this.imageData.data;
     }
-
 
     draw(board, colorSettings) {
         const canvasWidth = this.canvas.width;
@@ -97,10 +96,8 @@ class CanvasHandler {
     }
 
     drawSingleSpin(x, y, ratio, colorCode, canvasWidth) {
-
         for (let i = 0; i < ratio; ++i) {
             for (let j = 0; j < ratio; ++j) {
-
                 let offset = 4 * ((y + i) * this.canvas.width + (x + j));
                 this.data[offset + 0] = colorCode[3];
                 this.data[offset + 1] = colorCode[2];
@@ -112,59 +109,160 @@ class CanvasHandler {
 }
 
 
-class SettingsMenuButtons {
+
+class MagnetizationChart {
+
+    constructor(totalWidth, totalHeight) {
+
+        this.data = [];
+        this.lowerDataBound = 0;
+        this.nextPointNumber = 0;
+
+        const margin = { top: 20, right: 50, bottom: 50, left: 50 };
+        const chartWidth = totalWidth - margin.left - margin.right;
+        const chartHeight = totalHeight - margin.top - margin.bottom;
+
+        this.chartSVG = d3.select("#magnetizationChart").append("svg")
+            .attr("width", totalWidth).attr("height", totalHeight).append("g")
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+        let tooltip = d3.select("body").append("div") 
+            .attr("class", "tooltip")
+            .style("opacity", 0);
+
+        this.xScale = d3.scaleLinear().domain([0, 10]).range([0, chartWidth]);
+        this.yScale = d3.scaleLinear().domain([-1, 1]).range([chartHeight, 0]);
+
+        this.line = d3.line().x((d) => {return this.xScale(d[0]); })
+            .y((d) => {return this.yScale(d[1]); }).curve(d3.curveMonotoneX);
+
+        this.xAxis = this.chartSVG.append("g").attr("class", "xaxis")
+            .attr("transform", "translate(0," + chartHeight + ")")
+            .call(d3.axisBottom(this.xScale));
+
+        this.yAxis = this.chartSVG.append("g").attr("class", "yaxis")
+            .call(d3.axisLeft(this.yScale));
+
+        this.chartSVG.append("path").attr("class", "line")
+            .attr("fill", "none").attr("stroke", "steelblue")
+            .attr("stroke-width", 1.5).attr("d", this.line(this.data));
+
+        this.chartSVG.append("svg:text").attr("x", -190).attr("y", -40)
+            .attr("dy", ".1em").attr("transform", "rotate(-90)").text("Magnetization");
+
+        this.chartSVG.append("svg:text").attr("x", totalWidth/2.0 - 70).attr("y", totalHeight - 30)
+            .attr("dy", ".1em").text("Time");
+
+        this.dataLowerBoundInput = document.getElementById("lowerBoundRange");
+        this.dataLowerBoundInput.min = 0;
+        this.dataLowerBoundInput.max = 10;
+        this.dataLowerBoundInput.value = 0;
+    }
+
+    appendMagnetization(magnetization) {
+
+        this.data.push([this.nextPointNumber, magnetization]);
+        ++this.nextPointNumber;
+        if (this.data.length > 250) {
+            this.lowerDataBound = this.nextPointNumber - 250;
+            this.dataLowerBoundInput.value = this.lowerDataBound;
+        }
+        
+        this.dataLowerBoundInput.max = this.data.length > 10 ? this.nextPointNumber - 1 : 10;
+        document.getElementById("currentMagnetization").innerHTML = magnetization.toFixed(4);
+        this.redrawChart();
+    }
+
+    redrawChart() {
+        let tooltip = d3.select(".tooltip");
+        const dataSlice = this.data.slice(this.lowerDataBound);
+
+        const xAxisRightBound = this.data.length > 10 ? this.nextPointNumber - 1 : 10;
+        this.xScale.domain([this.lowerDataBound, xAxisRightBound]);
+        this.xAxis.call(d3.axisBottom(this.xScale));
+
+        document.getElementById("lowerBoundRangeOutput").value = this.lowerDataBound;
+
+        this.chartSVG.select(".line").attr("d", this.line(dataSlice));
+
+        this.chartSVG.selectAll('circle').remove();
+        this.chartSVG.selectAll("circle")
+            .data(dataSlice).enter().append('circle')
+                .attr('r', 1.5).attr('fill', 'black')
+                .attr('cx', (d) => { return this.xScale(d[0]); })
+                .attr('cy', (d) => { return this.yScale(d[1]); })
+                .on("mouseover", function(d) {
+                    tooltip.transition().duration(200).style("opacity", .9);
+                    tooltip.html(d[1]).style("left", (d3.event.pageX) + "px")
+                        .style("top", (d3.event.pageY - 28) + "px");
+                })
+                .on("mouseout", function(d) {
+                    tooltip.transition().duration(500).style("opacity", 0); 
+                });
+    }
+
+    reset() {
+        this.nextPointNumber = 0;
+        this.data = [];
+        this.lowerDataBound = 0;
+        this.xScale.domain([0, 10]);
+        this.xAxis.call(d3.axisBottom(this.xScale));
+        this.chartSVG.select(".line").attr("d", this.line(this.data));
+        this.chartSVG.selectAll('circle').remove();
+        document.getElementById("currentMagnetization").innerHTML = '';
+
+        this.dataLowerBoundInput.min = 0;
+        this.dataLowerBoundInput.max = 10;
+        this.dataLowerBoundInput.value = 0;
+    }
+
+    resizeChart(value) {
+        this.lowerDataBound = value;
+        this.redrawChart();
+    }
+
+    deactivateRangeSelection() {
+        document.getElementById("lowerBoundRange").disabled = true;
+    }
+
+    activateRangeSelection() {
+        document.getElementById("lowerBoundRange").disabled = false;
+    }
+}
+
+
+
+class ModelParameters {
 
     constructor() {
-        this.randomizeButton = this.createBootstrapMenuButton("Randomize", randomizeModelState);
-        this.startButton = this.createBootstrapMenuButton("Start", runModel);
-        this.stopButton = this.createBootstrapMenuButton("Stop", stopModel);
-        this.singleStepButton = this.createBootstrapMenuButton("Single step", singleStep);
-
-        this.leftButton = this.createButtonDivWrapper(this.startButton);
-        this.centralButton = this.createButtonDivWrapper(this.singleStepButton);
-        this.rightButton = this.createButtonDivWrapper(this.randomizeButton);
-
-        let buttonSpace = document.getElementById("menuButtons");
-        buttonSpace.appendChild(this.leftButton);
-        buttonSpace.appendChild(this.centralButton);
-        buttonSpace.appendChild(this.rightButton);
-
+        this.boltzmannConstant = 1.0;
+        this.updataModelParameters();
     }
 
-    createBootstrapMenuButton(title, onClickHandler) {
-        let newButton = document.createElement("button");
-        newButton.innerHTML = title;
-        newButton.onclick = onClickHandler;
-        newButton.classList.add("btn", "btn-dark", "m-2", "menuButton");
-        return newButton;
+    updataModelParameters() {
+        const temperatureValue = parseFloat(document.getElementById("temperatureFormControl").value);
+        const couplingConstantValue = parseFloat(document.getElementById("couplingConstantFormControl").value);
+        const outsideFieldValue = parseFloat(document.getElementById("fieldFormControl").value);
+
+        this.updateThermalEnergyInverse(temperatureValue);
+        this.updateCouplingConstant(couplingConstantValue);
+        this.updateOutsideFieldH(outsideFieldValue);
     }
 
-    createButtonDivWrapper(button) {
-        let divWrapper = document.createElement("div");
-        divWrapper.classList.add("col");
-        divWrapper.appendChild(button);
-        return divWrapper;
+    updateThermalEnergyInverse(temperature) {
+        this.thermalEnergyInverse = 1.0/(this.boltzmannConstant * temperature);
     }
 
-    enableStopButton() {
-        this.leftButton.replaceChild(this.stopButton, this.startButton);
+    updateOutsideFieldH(fieldValue) {
+        this.outsideField = fieldValue;
     }
 
-    enableStartButton() {
-        this.leftButton.replaceChild(this.startButton, this.stopButton);
-    }
-
-    deactivateCentralAndRightButtons() {
-        this.centralButton.firstElementChild.disabled = true;
-        this.rightButton.firstElementChild.disabled = true;
-    }
-
-    activateCentralAndRightButtons() {
-        this.centralButton.firstElementChild.disabled = false;
-        this.rightButton.firstElementChild.disabled = false;
+    updateCouplingConstant(constantValue) {
+        this.couplingConstant = constantValue;
     }
 
 }
+
 
 
 class ModelSettings {
@@ -237,153 +335,61 @@ class ModelSettings {
 }
 
 
-class ModelParameters {
+
+class SettingsMenuButtons {
 
     constructor() {
-        this.boltzmannConstant = 1.0; // TODO: change value
-        this.updataModelParameters();
+        this.randomizeButton = this.createBootstrapMenuButton("Randomize", randomizeModelState);
+        this.startButton = this.createBootstrapMenuButton("Start", runModel);
+        this.stopButton = this.createBootstrapMenuButton("Stop", stopModel);
+        this.singleStepButton = this.createBootstrapMenuButton("Single step", singleStep);
+
+        this.leftButton = this.createButtonDivWrapper(this.startButton);
+        this.centralButton = this.createButtonDivWrapper(this.singleStepButton);
+        this.rightButton = this.createButtonDivWrapper(this.randomizeButton);
+
+        let buttonSpace = document.getElementById("menuButtons");
+        buttonSpace.appendChild(this.leftButton);
+        buttonSpace.appendChild(this.centralButton);
+        buttonSpace.appendChild(this.rightButton);
+
     }
 
-    updataModelParameters() {
-        const temperatureValue = parseFloat(document.getElementById("temperatureFormControl").value);
-        const couplingConstantValue = parseFloat(document.getElementById("couplingConstantFormControl").value);
-        const outsideFieldValue = parseFloat(document.getElementById("fieldFormControl").value);
-
-        this.updateThermalEnergyInverse(temperatureValue);
-        this.updateCouplingConstant(couplingConstantValue);
-        this.updateOutsideFieldH(outsideFieldValue);
+    createBootstrapMenuButton(title, onClickHandler) {
+        let newButton = document.createElement("button");
+        newButton.innerHTML = title;
+        newButton.onclick = onClickHandler;
+        newButton.classList.add("btn", "btn-dark", "m-2", "menuButton");
+        return newButton;
     }
 
-    updateThermalEnergyInverse(temperature) {
-        this.thermalEnergyInverse = 1.0/(this.boltzmannConstant * temperature);
+    createButtonDivWrapper(button) {
+        let divWrapper = document.createElement("div");
+        divWrapper.classList.add("col");
+        divWrapper.appendChild(button);
+        return divWrapper;
     }
 
-    updateOutsideFieldH(fieldValue) {
-        this.outsideField = fieldValue;
+    enableStopButton() {
+        this.leftButton.replaceChild(this.stopButton, this.startButton);
     }
 
-    updateCouplingConstant(constantValue) {
-        this.couplingConstant = constantValue;
+    enableStartButton() {
+        this.leftButton.replaceChild(this.startButton, this.stopButton);
+    }
+
+    deactivateCentralAndRightButtons() {
+        this.centralButton.firstElementChild.disabled = true;
+        this.rightButton.firstElementChild.disabled = true;
+    }
+
+    activateCentralAndRightButtons() {
+        this.centralButton.firstElementChild.disabled = false;
+        this.rightButton.firstElementChild.disabled = false;
     }
 
 }
 
-
-class MagnetizationChart {
-
-    constructor(totalWidth, totalHeight) {
-
-        this.data = [];
-        this.lowerDataBound = 0;
-        this.nextPointNumber = 0;
-
-        const margin = { top: 50, right: 50, bottom: 50, left: 50 };
-        const chartWidth = totalWidth - margin.left - margin.right;
-        const chartHeight = totalHeight - margin.top - margin.bottom;
-
-        this.chartSVG = d3.select("#magnetizationChart").append("svg")
-            .attr("width", totalWidth).attr("height", totalHeight).append("g")
-            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
-        let tooltip = d3.select("body").append("div") 
-            .attr("class", "tooltip")
-            .style("opacity", 0);
-
-        this.xScale = d3.scaleLinear().domain([0, 10]).range([0, chartWidth]);
-        this.yScale = d3.scaleLinear().domain([-1, 1]).range([chartHeight, 0]);
-
-        this.line = d3.line().x((d) => {return this.xScale(d[0]); })
-            .y((d) => {return this.yScale(d[1]); }).curve(d3.curveMonotoneX);
-
-        this.xAxis = this.chartSVG.append("g").attr("class", "xaxis")
-            .attr("transform", "translate(0," + chartHeight + ")")
-            .call(d3.axisBottom(this.xScale));
-
-        this.yAxis = this.chartSVG.append("g").attr("class", "yaxis")
-            .call(d3.axisLeft(this.yScale));
-
-        this.chartSVG.append("path").attr("class", "line")
-            .attr("fill", "none").attr("stroke", "steelblue")
-            .attr("stroke-width", 1.5).attr("d", this.line(this.data));
-
-        this.chartSVG.append("svg:text").attr("x", -200).attr("y", -40)
-            .attr("dy", ".1em").attr("transform", "rotate(-90)").text("Magnetization");
-
-        this.chartSVG.append("svg:text").attr("x", totalWidth/2.0 - 70).attr("y", totalHeight - 60)
-            .attr("dy", ".1em").text("Time");
-
-        this.dataLowerBoundInput = document.getElementById("lowerBoundRange");
-        this.dataLowerBoundInput.min = 0;
-        this.dataLowerBoundInput.max = 10;
-        this.dataLowerBoundInput.value = 0;
-    }
-
-    appendMagnetization(magnetization) {
-
-        this.data.push([this.nextPointNumber, magnetization]);
-        ++this.nextPointNumber;
-        if (this.data.length > 250) {
-            this.lowerDataBound = this.nextPointNumber - 250;
-            this.dataLowerBoundInput.value = this.lowerDataBound;
-        }
-        
-        this.dataLowerBoundInput.max = this.data.length > 10 ? this.nextPointNumber - 1 : 10;
-        this.redrawChart();
-    }
-
-    redrawChart() {
-        let tooltip = d3.select(".tooltip");
-        const dataSlice = this.data.slice(this.lowerDataBound);
-
-        const xAxisRightBound = this.data.length > 10 ? this.nextPointNumber - 1 : 10;
-        this.xScale.domain([this.lowerDataBound, xAxisRightBound]);
-        this.xAxis.call(d3.axisBottom(this.xScale));
-
-        this.chartSVG.select(".line").attr("d", this.line(dataSlice));
-
-        this.chartSVG.selectAll('circle').remove();
-        this.chartSVG.selectAll("circle")
-            .data(dataSlice).enter().append('circle')
-                .attr('r', 1.5).attr('fill', 'black')
-                .attr('cx', (d) => { return this.xScale(d[0]); })
-                .attr('cy', (d) => { return this.yScale(d[1]); })
-                .on("mouseover", function(d) {
-                    tooltip.transition().duration(200).style("opacity", .9);
-                    tooltip.html(d[1]).style("left", (d3.event.pageX) + "px")
-                        .style("top", (d3.event.pageY - 28) + "px");
-                })
-                .on("mouseout", function(d) {
-                    tooltip.transition().duration(500).style("opacity", 0); 
-                });
-    }
-
-    reset() {
-        this.nextPointNumber = 0;
-        this.data = [];
-        this.lowerDataBound = 0;
-        this.xScale.domain([0, 10]);
-        this.xAxis.call(d3.axisBottom(this.xScale));
-        this.chartSVG.select(".line").attr("d", this.line(this.data));
-        this.chartSVG.selectAll('circle').remove();
-
-        this.dataLowerBoundInput.min = 0;
-        this.dataLowerBoundInput.max = 10;
-        this.dataLowerBoundInput.value = 0;
-    }
-
-    resizeChart(value) {
-        this.lowerDataBound = value;
-        this.redrawChart();
-    }
-
-    deactivateRangeSelection() {
-        document.getElementById("lowerBoundRange").disabled = true;
-    }
-
-    activateRangeSelection() {
-        document.getElementById("lowerBoundRange").disabled = false;
-    }
-}
 
 
 class App {
@@ -400,7 +406,7 @@ class App {
         this.canvas.draw(this.board, this.modelSettings.currentColorPair);
         this.animationHandler = null;
 
-        this.magnetizationChart = new MagnetizationChart(500, 400);
+        this.magnetizationChart = new MagnetizationChart(500, 350);
     }
 
     randomizeModelState() {
@@ -459,6 +465,7 @@ class App {
 }
 
 
+
 let app = null;
 
 function initializeApp() {
@@ -498,6 +505,5 @@ function updateColorPair(event) {
 }
 
 function resizeMagnetizationChart(event) {
-    console.log("Test");
     app.resizeMagnetizationChart(parseInt(event.target.value));
 }

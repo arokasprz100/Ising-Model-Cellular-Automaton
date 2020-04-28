@@ -49,11 +49,14 @@
 
             <div class="col text-center">
               <label for="couplingConstantFormControl">Coupling Constant J</label>
-              <input id="couplingConstantFormControl" type="number" class="form-control" onchange="updateModelParameter()" value="1" step="1"/>
+              <select id="couplingConstantFormControl" class="form-control" onchange="updateModelParameter()">
+                <option value="1"> +1 (positive) </option>
+                <option value="-1"> -1 (negative) </option>
+              </select>
             </div>
 
             <div class="col text-center">
-              <label for="temperatureFormControl">Temperature</label>
+              <label for="temperatureFormControl">Temperature T</label>
               <input id="temperatureFormControl" type="number" class="form-control" onchange="updateModelParameter()" value="1" step="0.1"/>
             </div>
 
@@ -70,11 +73,14 @@
           <canvas width="500px" height="500px" id="board"></canvas>
         </div>
 
-        <div class="col-sm col-sm-auto">
+        <div class="col-sm col-sm-auto text-center">
+          <h5> Magnetization </h5>
+          <div> Current value: <span id="currentMagnetization"> </span> </div>
           <div class="p-2 row" id="magnetizationChart"></div>
           <div class="p-2 row justify-content-center">
             <label for="formControlRange">Data lower bound</label>
-            <input type="range" class="form-control-range" id="lowerBoundRange" onchange="resizeMagnetizationChart(event)">
+            <input type="range" class="form-control-range" id="lowerBoundRange" onchange="resizeMagnetizationChart(event)" oninput="lowerBoundRangeOutput.value = lowerBoundRange.value"/>
+            <output name="lowerBoundRangeOutput" id="lowerBoundRangeOutput"></output>
           </div>
         </div>
 
