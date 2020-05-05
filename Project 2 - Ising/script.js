@@ -41,13 +41,11 @@ class Board {
                 const sum = this.computeNeighboursSum(i, j, couplingConstant) + outsideField;
                 if (isFinite(thermalEnergyInverse)) {
                     const r = 1.0/(1.0 + Math.exp(-2.0 * thermalEnergyInverse * sum));
-                    let randomNumber = Math.random();
+                    const randomNumber = Math.random();
                     this.board[j][i] = (r >= randomNumber ? 1 : -1);
                 }
-                else {
-                    if (Math.abs(sum) > 0.00000000001) {
-                        this.board[j][i] = sum > 0 ? 1 : -1;
-                    }
+                else if (Math.abs(sum) > 0.00000000001) {
+                    this.board[j][i] = (sum > 0 ? 1 : -1);
                 }
                 magnetization += this.board[j][i];
             }
@@ -56,9 +54,6 @@ class Board {
     }
 
     resizeBoard(newSize) {
-        for (let i = 0; i < this.side; ++i) {
-            this.board[i] = null;
-        }
         this.side = newSize;
         this.board = new Array(this.side);
         for (let i = 0; i < this.side; ++i) {
